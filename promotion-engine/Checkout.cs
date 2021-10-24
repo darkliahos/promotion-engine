@@ -42,17 +42,30 @@ namespace promotion_engine
 
             foreach (var skuCartItem in skuGrouped) 
             {
-                var selectedPromo = promotions.SingleOrDefault(x => x.SKUReference == skuCartItem.Key);
-                if(selectedPromo != null)
+                var multiBuyPromos = promotions.SingleOrDefault(x => x.SKUReference == skuCartItem.Key && x.Type == PromotionType.MultibuyOffer);
+                if(multiBuyPromos != null)
                 {
-                    total += selectedPromo.PromoPrice;
-                    total += skuCartItem.Price * (skuCartItem.TotalQuantity - selectedPromo.QuantityApplied);
+                    total += multiBuyPromos.PromoPrice;
+                    total += skuCartItem.Price * (skuCartItem.TotalQuantity - multiBuyPromos.QuantityApplied);
                 }
-                else
+
+                var specificItemsPromotions = promotions.SingleOrDefault(x =>  x.Type == PromotionType.HaveCertainProductsInYourBasket && x.SKUReference.Split(",").Any(x=> x.Trim(',') == skuCartItem.Key));
+
+                if (specificItemsPromotions != null)
+                {
+                    total += skuCartItem.Price * (skuCartItem.TotalQuantity - specificItemsPromotions.QuantityApplied);
+                }
+                
+                if(specificItemsPromotions == null && multiBuyPromos == null)
                 {
                     total += skuCartItem.Price * skuCartItem.TotalQuantity;
                 }
 
+            }
+
+            foreach(var specificPromos in promotions.Where(x=> x.Type == PromotionType.HaveCertainProductsInYourBasket))
+            {
+                total += specificPromos.PromoPrice;
             }
             return total;
         }

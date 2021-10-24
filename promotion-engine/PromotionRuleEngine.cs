@@ -45,17 +45,72 @@ namespace promotion_engine
                         var eligableItems = Cart.Where(ci => ci.SKU.Name == discount.SKUReference.First()).GroupBy(gci => gci.SKU.Name)
                             .Select(gcis => new { gcis.Key, TotalQuantity = gcis.Sum(g=> g.Quantity), Price = gcis.First().SKU.Price});
 
-                        if(eligableItems.First().TotalQuantity > discount.QualifyingQuantity)
+                        if(eligableItems.First().TotalQuantity >= discount.QualifyingQuantity)
                         {
                             var timesApplied = eligableItems.First().TotalQuantity / discount.QualifyingQuantity;
                             var quanityAffected = timesApplied * discount.QualifyingQuantity;
                             var subractionPercentage = (100M - discount.Percentage) / 100;
                             var promoPrice = (eligableItems.First().Price * quanityAffected) * subractionPercentage;
-                            promotionApplications.Add(new PromotionApplication { QuantityApplied = quanityAffected, SKUReference = eligableItems.First().Key, PromoPrice = (int)promoPrice, Type = discount.Type });
+                            promotionApplications.Add(new PromotionApplication { QuantityApplied = quanityAffected, 
+                                SKUReference = eligableItems.First().Key, 
+                                PromoPrice = (int)promoPrice, 
+                                Type = discount.Type });
                         }
                         break;
                     case PromotionType.HaveCertainProductsInYourBasket:
+                        var discountEligable = true;
+                        var groupedCart = Cart.GroupBy(gci => gci.SKU.Name)
+                            .Select(gcis => new { gcis.Key, TotalQuantity = gcis.Sum(g => g.Quantity), Price = gcis.First().SKU.Price });
 
+                        var itemsToApplyPromosTo = new List<GroupedCartItem>();
+                        foreach (var skuRef in discount.SKUReference)
+                        {
+                            var eligibleProduct = groupedCart.FirstOrDefault(c => c.Key == skuRef);
+
+                            if (eligibleProduct == null)
+                            {
+                                discountEligable = false; 
+                            }
+                            else
+                            {
+                                itemsToApplyPromosTo.Add(new GroupedCartItem
+                                {
+                                    SKUReference = eligibleProduct.Key,
+                                    Price = eligibleProduct.Price,
+                                    Quantity = eligibleProduct.TotalQuantity
+                                });
+                            }
+
+                        }
+
+                        if (discountEligable)
+                        {
+                            var lowestCommonQuantity = itemsToApplyPromosTo.First().Quantity;
+                            var skuReferences = "";
+
+                            foreach(var itapt in itemsToApplyPromosTo)
+                            {
+                                skuReferences += $"{itapt.SKUReference},";
+                                if (itapt.Quantity < lowestCommonQuantity)
+                                {
+                                    lowestCommonQuantity = itapt.Quantity;
+                                }
+                            }
+
+                            var subractionPercentage = (100M - discount.Percentage) / 100;
+                            var withoutDiscount = itemsToApplyPromosTo.Select(x=> new {
+                                TotalPrice = x.Price * lowestCommonQuantity
+                            });
+
+                            var totalPrice = decimal.Ceiling((withoutDiscount.Sum(x => x.TotalPrice) * subractionPercentage));
+
+                            promotionApplications.Add(new PromotionApplication
+                            {
+
+                                Type = discount.Type, QuantityApplied = lowestCommonQuantity, SKUReference = skuReferences, PromoPrice = (int)totalPrice
+
+                            }); ;
+                        }
 
 
                         break;

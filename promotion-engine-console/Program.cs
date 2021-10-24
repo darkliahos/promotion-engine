@@ -8,9 +8,10 @@ namespace promotion_engine_console
         private static Checkout checkout = new Checkout(new Warehouse(), new PromotionRuleEngine());
         static void Main(string[] args)
         {
-            checkout.AddSKUToCart("A", 5);
+            checkout.AddSKUToCart("A", 3);
             checkout.AddSKUToCart("B", 5);
             checkout.AddSKUToCart("C", 1);
+            checkout.AddSKUToCart("D", 1);
             Console.WriteLine(checkout.CalculateTotal());
         }
     }
