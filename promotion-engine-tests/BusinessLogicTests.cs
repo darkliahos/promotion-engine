@@ -9,7 +9,7 @@ namespace promotion_engine_tests
         public void ScenarioA_Totals100()
         {
             // Arrange
-            var checkout = new Checkout(new Warehouse());
+            var checkout = new Checkout(new Warehouse(), new PromotionRuleEngine());
             checkout.AddSKUToCart("A", 1);
             checkout.AddSKUToCart("B", 1);
             checkout.AddSKUToCart("C", 1);
@@ -26,7 +26,7 @@ namespace promotion_engine_tests
         public void ScenarioB_Totals370()
         {
             // Arrange
-            var checkout = new Checkout(new Warehouse());
+            var checkout = new Checkout(new Warehouse(), new PromotionRuleEngine());
             checkout.AddSKUToCart("A", 5);
             checkout.AddSKUToCart("B", 5);
             checkout.AddSKUToCart("C", 1);
@@ -43,7 +43,7 @@ namespace promotion_engine_tests
         public void ScenarioC_Totals280()
         {
             // Arrange
-            var checkout = new Checkout(new Warehouse());
+            var checkout = new Checkout(new Warehouse(), new PromotionRuleEngine());
             checkout.AddSKUToCart("A", 3);
             checkout.AddSKUToCart("B", 5);
             checkout.AddSKUToCart("C", 1);
