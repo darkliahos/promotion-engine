@@ -2,7 +2,7 @@
 
 namespace promotion_engine
 {
-    public class Cart
+    public class CartItem
     {
         public SKU SKU { get; set; }
 
